@@ -26,7 +26,18 @@ export async function addNote({
   );
 }
 
-export async function getUserNotes(userId: number) {
+export async function getUserNotes(noteId: number): Promise<any> {
   if (!db) throw Error("DB not init.");
-  return db.all(`SELECT * FROM notes WHERE user_id = ?`, [userId]);
+  return db.get(`SELECT * FROM notes WHERE id = ?`, [noteId]);
 }
+
+export async function updateNote(noteId: number, { title, content }: { title: string, content: string }): Promise<any> {
+  if (!db) throw Error("DB not init.");
+  await db.run(`UPDATE notes SET title = ?, content = ? WHERE id = ?`, [title, content, noteId]);
+  return getUserNotes(noteId);
+}
+export async function deleteNote(noteId: number): Promise<any> {
+  if (!db) throw Error("DB not init.");
+  return db.get(`SELECT * FROM notes WHERE id = ?`, [noteId]);
+}
+

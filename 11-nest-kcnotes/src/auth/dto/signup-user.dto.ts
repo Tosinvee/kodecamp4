@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class SignupDto {

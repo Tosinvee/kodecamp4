@@ -1,9 +1,16 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { SignupDto } from './dto/signup-user.dto';
+import { UpdatePasswordDto } from './dto/updatepassword.dto';
+import { Note, User } from '@prisma/client';
 
+
+type IUser = Omit<User, 'password'> & {
+  notes: Note
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -63,4 +70,41 @@ export class AuthService {
       }),
     };
   }
+
+  async me(user: IUser){
+    return {user}
 }
+
+  async updateUser(userId: string, updatePasswordDto: UpdatePasswordDto): Promise<void> {
+    const { currentPassword, newPassword } = updatePasswordDto;
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!passwordMatch) {
+      throw new BadRequestException('Current password is incorrect.');
+    }
+
+    const salt = 10;
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: passwordHash },
+    });
+  }
+}
+
+
+  
+    
+        
+    
+
+
+

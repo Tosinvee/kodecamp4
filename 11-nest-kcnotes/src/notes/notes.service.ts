@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
@@ -19,7 +20,7 @@ export class NotesService {
     });
     if (existingNote)
       throw new BadRequestException({
-        message: `Note with title '${note.title}' alsready exists.`,
+        message: `Note with title '${note.title}' already exists.`,
       });
     return await this.prisma.note.create({
       data: {

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { NotesController } from './notes.controller';

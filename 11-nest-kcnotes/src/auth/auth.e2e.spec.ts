@@ -5,12 +5,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from '../app.module'; // Adjust the path as needed
 import { PrismaService } from '../prisma/prisma.service';
-import { INestApplication } from '@nestjs/common';
+import { BadRequestException, INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { AuthService } from './auth.service';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let prismaService: PrismaService;
+  let service: AuthService
 
   const randomString = () => Math.random().toString(36).substring(2, 15);
   
@@ -31,6 +33,8 @@ describe('AuthController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     prismaService = moduleFixture.get<PrismaService>(PrismaService);
+    service = moduleFixture.get<AuthService>(AuthService); 
+
 
     await app.init();
   });
@@ -145,4 +149,34 @@ describe('AuthController (e2e)', () => {
   afterAll(async () => {
     await app.close();
   });
+
+  describe('deleteUser', () => {
+    it('should delete a user and their notes', async () => {
+      const mockUserId = 'user-id';
+      const mockUser = { id: mockUserId, username: 'testuser' };
+
+      prismaService.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      prismaService.user.delete = jest.fn().mockResolvedValue(mockUser);
+
+      await service.deleteUser(mockUserId);
+
+      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
+      expect(prismaService.user.delete).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
+    });
+
+    it('should throw BadRequestException if user is not found', async () => {
+      const mockUserId = 'nonexistent-user-id';
+
+      prismaService.user.findUnique = jest.fn().mockResolvedValue(null);
+
+      await expect(service.deleteUser(mockUserId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
 });
